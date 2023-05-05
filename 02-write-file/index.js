@@ -1,19 +1,24 @@
 const fs = require('fs');
 const path = require('path');
-const readline = require('readline');
 
 const fileName = "text.txt";
 const filePath = path.join(__dirname, fileName);
+const options = {encoding: 'utf-8'}
 
-fs.writeFile(filePath, '', () => {
+const ws = fs.createWriteStream(filePath, options);
 
+process.stdout.write('Enter some text: ');
+process.stdin.setEncoding(options.encoding);
+process.stdin.on('data', (data) => {
+  if (data.toString().trim() === 'exit') {
+    process.stdout.write('\nGood By My Friend.');
+    process.exit(0);
+  }
 })
 
-const readlineInterface = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-});
+process.on('SIGINT', () => {
+  process.stdout.write('\nGood By My Friend.')
+  process.exit(0);
+})
 
-readlineInterface.on('data', (chunk) => {
-    console.log(chunk);
-});
+process.stdin.pipe(ws)
