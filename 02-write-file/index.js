@@ -9,6 +9,7 @@ const ws = fs.createWriteStream(filePath, options);
 
 process.stdout.write('Enter some text: ');
 process.stdin.setEncoding(options.encoding);
+
 process.stdin.on('data', (data) => {
   if (data.toString().trim() === 'exit') {
     process.stdout.write('\nGood By My Friend.');
