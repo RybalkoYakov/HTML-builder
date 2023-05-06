@@ -1,5 +1,4 @@
 const { mkdir, readdir, copyFile } = require('fs/promises');
-const fs = require('fs');
 const path = require('path');
 
 (async () => {
