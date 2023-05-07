@@ -1,4 +1,5 @@
-const { mkdir, readdir, copyFile, unlink, rmdir, readFile} = require('fs/promises');
+const { mkdir, readdir, copyFile, unlink, rmdir, readFile, access, stat} = require('fs/promises');
+const { constants } = require('fs');
 const path = require('path');
 
 (async () => {
@@ -28,6 +29,24 @@ const path = require('path');
  * @returns {Promise<void>}
  */
 async function removeDirectory(node) {
+
+  /**
+   * Supporting object to check for the existence of the folder
+   * @type {ParsedPath}
+   */
+  const pathInfo = path.parse(node);
+
+  /**
+   * Array of parent node's nodes
+   * @type {string[]}
+   */
+  const nodes = await readdir(pathInfo.dir);
+
+  /**
+   * Returns undefined if nothing to delete
+   */
+  if (!nodes.some(value => value === pathInfo.name)) return;
+
   const files = await readdir(node, {withFileTypes: true});
 
   for (const file of files) {
