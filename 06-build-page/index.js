@@ -30,6 +30,8 @@ async function getFinalTemplate(pathDir) {
     const modified = template.replace(replacer, (substring, args) => {
         if (componentsMap.has(args)) {
             return componentsMap.get(args);
+        } else {
+            return ''
         }
     });
 
