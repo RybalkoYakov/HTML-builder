@@ -66,6 +66,5 @@ async function removeDirectory(node) {
 
     await copyFile(sourceFile, destFile);
   }
+  process.stdout.write(`${folderName}-${folderMod} folder ready.`)
 })();
-
-module.exports = { removeDirectory }

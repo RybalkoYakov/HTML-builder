@@ -1,7 +1,5 @@
-const { readdir, readFile, writeFile, mkdir, copyFile} = require('fs/promises');
+const { readdir, readFile, writeFile, mkdir, copyFile, unlink, rmdir} = require('fs/promises');
 const path = require('path');
-
-const { removeDirectory }  = require("../04-copy-directory");
 
 /**
  * Production directory path
@@ -64,7 +62,7 @@ async function generateStyles(pathDir) {
 }
 
 async function deepCopyFolder(readPath, writePath) {
-  await removeDirectory(writePath);
+  await deepRemoveFolder(writePath);
   await mkdir(writePath);
 
   const nodes = await readdir(readPath, {withFileTypes: true});
@@ -78,9 +76,26 @@ async function deepCopyFolder(readPath, writePath) {
   }
 }
 
+async function deepRemoveFolder(node) {
+  const pathInfo = path.parse(node);
+  const nodes = await readdir(pathInfo.dir);
+  if (!nodes.some(value => value === pathInfo.name)) return;
+
+  const files = await readdir(node, {withFileTypes: true});
+
+  for (const file of files) {
+    if (file.isFile()) {
+      await unlink(path.join(node, file.name));
+    } else {
+      await deepRemoveFolder(path.join(node, file.name));
+      await rmdir(path.join(node, file.name));
+    }
+  }
+}
+
 async function bundle() {
   const template = await getFinalTemplate(path.join(__dirname, 'components'));
-  await removeDirectory(output);
+  await deepRemoveFolder(output);
   await mkdir(output, {recursive: true});
   await writeFile(path.join(output, 'index.html'), template);
   await generateStyles(path.join(__dirname, 'styles'));
