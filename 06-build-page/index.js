@@ -4,14 +4,14 @@ const path = require('path');
 const {removeDirectory} = require("../04-copy-directory");
 
 /**
- * Production directory
+ * Production directory path
  * @type {PathLike | URL}
  */
 const output = path.join(__dirname, 'project-dist');
 
 /**
  * Generate final template accordingly to component's templates
- * @param pathDir {PathLike | URL}
+ * @param pathDir {PathLike | string}
  * @returns {Promise<void>}
  */
 async function generateTemplate(pathDir) {
@@ -89,8 +89,14 @@ async function generateStyles(pathDir) {
     await writeFile(outputPath, data.join('\n'), {encoding: "utf8"});
 }
 
-async function deepCopyFolder(readPath, writePath) {
 
+async function deepCopyFolder(readPath, writePath) {
+    const info = path.parse(readPath);
+    const { dirName } = info; // the name of the directory to be copied;
+    await removeDirectory(path.join(writePath, dirName));
+
+
+    // TODO DEEP COPY
 }
 
 async function bundle() {
@@ -98,8 +104,9 @@ async function bundle() {
     await removeDirectory(output);
     await mkdir(output, {recursive: true});
     await writeFile(path.join(output, 'index.html'), template);
+
     await generateStyles(path.join(__dirname, 'styles'));
-    await deepCopyFolder();
+    await deepCopyFolder(path.join(__dirname, 'assets'), output);
 }
 
 bundle();

@@ -20,5 +20,6 @@ const path = require('path');
     }
   }
 
-  writeFile(path.join(outputDir, bundleName + extension), filesData.join(' '), {encoding: "utf8"});
+  await writeFile(path.join(outputDir, `${bundleName}${extension}`), filesData.join('\n'), {encoding: "utf8"});
+  process.stdout.write(`${bundleName}${extension} file is ready.`);
 })()
