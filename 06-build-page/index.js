@@ -7,7 +7,7 @@ const path = require('path');
 const output = path.join(__dirname, 'project-dist');
 
 /**
- * Generate final template accordingly to component's templates
+ * Generate final template according to component's templates
  * @param pathDir {PathLike | string}
  * @returns {Promise<void>}
  */
@@ -29,15 +29,15 @@ async function getFinalTemplate(pathDir) {
     if (componentsMap.has(args)) {
       return componentsMap.get(args);
     } else {
-      return ''
+      return '';
     }
   });
 
   return new Promise((resolve, reject) => {
     try {
-      resolve(modified)
+      resolve(modified);
     } catch (err) {
-      reject(err)
+      reject(err);
     }
   })
 }
@@ -98,10 +98,12 @@ async function bundle() {
   await deepRemoveFolder(output);
   await mkdir(output, {recursive: true});
   await writeFile(path.join(output, 'index.html'), template);
+
   await generateStyles(path.join(__dirname, 'styles'));
+
   await deepCopyFolder(path.join(__dirname, 'assets'), path.join(output, 'assets'));
 }
 
 bundle().then(() => {
-  process.stdout.write('Bundle ready.')
+  process.stdout.write('Bundle ready.');
 });
