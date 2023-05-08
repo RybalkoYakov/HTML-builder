@@ -1,11 +1,10 @@
 const { readdir, readFile, writeFile, mkdir, copyFile} = require('fs/promises');
 const path = require('path');
 
-const {removeDirectory} = require("../04-copy-directory");
+const { removeDirectory }  = require("../04-copy-directory");
 
 /**
  * Production directory path
- * @type {PathLike | URL}
  */
 const output = path.join(__dirname, 'project-dist');
 
@@ -14,36 +13,10 @@ const output = path.join(__dirname, 'project-dist');
  * @param pathDir {PathLike | string}
  * @returns {Promise<void>}
  */
-async function generateTemplate(pathDir) {
-    /**
-     * Extension of component's template
-     * @type {string}
-     */
+async function getFinalTemplate(pathDir) {
     const extension = '.html';
-
-    /**
-     * Component's template files
-     * @type {Dirent[]}
-     */
     const components = await readdir(pathDir, {withFileTypes: true});
-
-    /**
-     * Map for replacing regular expression
-     * @type {Map<any, any>}
-     */
     const componentsMap = new Map();
-
-    /**
-     * Main template
-     * @type {string}
-     */
-    const template = await readFile(path.join(__dirname, 'template.html'), "utf8");
-
-    /**
-     * Regular expression related angular replacer
-     * @type {RegExp}
-     */
-    const replacer = /\{\{(.*?)}}/g;
 
     for (const component of components) {
         const name = path.basename(path.join(pathDir, component.name), extension);
@@ -51,10 +24,9 @@ async function generateTemplate(pathDir) {
         componentsMap.set(name, componentTemplate);
     }
 
-    /**
-     * Modified template
-     * @type {string}
-     */
+    const template = await readFile(path.join(__dirname, 'template.html'), "utf8");
+    const replacer = /\{\{(.*?)}}/g;
+
     const modified = template.replace(replacer, (substring, args) => {
         if (componentsMap.has(args)) {
             return componentsMap.get(args);
@@ -89,26 +61,30 @@ async function generateStyles(pathDir) {
     await writeFile(outputPath, data.join('\n'), {encoding: "utf8"});
 }
 
-
 async function deepCopyFolder(readPath, writePath) {
-    const info = path.parse(readPath);
-    const { dirName } = info; // the name of the directory to be copied;
-    await removeDirectory(path.join(writePath, dirName));
+    await removeDirectory(writePath);
+    await mkdir(writePath);
 
+    const nodes = await readdir(readPath, {withFileTypes: true});
 
-    // TODO DEEP COPY
+    for (const node of nodes) {
+        if (node.isDirectory()) {
+            await deepCopyFolder(path.join(readPath, node.name), path.join(writePath, node.name));
+        } else {
+            await copyFile(path.join(readPath, node.name), path.join(writePath, node.name));
+        }
+    }
 }
 
 async function bundle() {
-    const template = await generateTemplate(path.join(__dirname, 'components'));
+    const template = await getFinalTemplate(path.join(__dirname, 'components'));
     await removeDirectory(output);
     await mkdir(output, {recursive: true});
     await writeFile(path.join(output, 'index.html'), template);
-
     await generateStyles(path.join(__dirname, 'styles'));
-    await deepCopyFolder(path.join(__dirname, 'assets'), output);
+    await deepCopyFolder(path.join(__dirname, 'assets'), path.join(output, 'assets'));
 }
 
-bundle();
-
-module.exports = { deepCopyFolder }
+bundle().then(() => {
+    process.stdout.write('Bundle ready.')
+});
